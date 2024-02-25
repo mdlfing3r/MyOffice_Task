@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <vector>
+#include <map>
+#include <set>
 
 struct Rect
 {
@@ -15,6 +17,9 @@ class Object
 {
 public:
     virtual ~Object() = default;
+    Object(const Rect RectParams);
+    Rect Params;
+    bool isGrouped;
 };
 
 class Slide
@@ -22,22 +27,96 @@ class Slide
 public:
     Slide() = default;
     virtual ~Slide() = default;
-public:
-    virtual void addRect(const Rect& geometry) = 0;
+    virtual void addRect(const Rect& geometry) = 0;  //Добавить прямоугольник
 
-    virtual void group(const std::vector<std::size_t>& indexesToGroup) = 0;
-    virtual void ungroup(std::size_t groupIndex) = 0;
+    virtual void group(const std::vector<std::size_t>& indexesToGroup) = 0; //группировка элементов с индексами indexesToGroup
+    virtual void ungroup(std::size_t groupIndex) = 0; //разгруппировать элемент groupIndex
 
     virtual void removeObject(std::size_t objectIndex) = 0;
 
-    virtual void moveObject(std::size_t objectIndex, int xOffset, int yOffset) = 0;
+    virtual void moveObject(std::size_t objectIndex, int xOffset, int yOffset) = 0; //Перемещение объекта по слайду
+                                                                                    // (возможно объект выйдет из группы после перемещения
 
-    virtual std::size_t getObjectsCount() const = 0;
+    virtual std::size_t getObjectsCount() const = 0;  //Возвращает количество объектов  
     virtual const Object& getObject(std::size_t objectIndex) const = 0;
+
+
+};
+
+class Page : public Slide
+{
+public:
+    virtual void addRect(const Rect& geometry) override;
+    virtual void group(const std::vector<std::size_t>& indexesToGroup) override; //группировка элементов с индексами indexesToGroup
+    virtual void ungroup(std::size_t groupIndex) override; //разгруппировать элемент groupIndex
+    virtual void removeObject(std::size_t objectIndex) override;
+    virtual void moveObject(std::size_t objectIndex, int xOffset, int yOffset) override; //Перемещение объекта по слайду
+    virtual std::size_t getObjectsCount() const override;  //Возвращает количество объектов  
+    virtual const Object& getObject(std::size_t objectIndex) const override;
+    std::vector<Object> _Objects;  //Объекты на слайде  СДЕЛАТЬ ТИП MAP В КЛЮЧЕ ПОСТАВИТЬ ИНДЕКС 
 };
 
 
+
+void Page::addRect(const Rect& geometry)
+{
+    _Objects.insert(new Object(geometry));
+}
+
+void Page::group(const std::vector<std::size_t>& indexesToGroup)
+{
+    for (auto& elemNum : indexesToGroup) {
+        _Objects.at(elemNum).isGrouped = true;
+    }
+
+}
+
+void Page::ungroup(std::size_t groupIndex)
+{
+    for (auto& elemNum : indexesToGroup) {
+        _Objects.at(elemNum).isGrouped = false;
+    }
+}
+
+void Page::removeObject(std::size_t objectIndex)
+{
+    _Objects.erase(objectIndex);
+}
+
+void Page::moveObject(std::size_t objectIndex, int xOffset, int yOffset)
+{
+    _Objects.at(objectIndex).Params.x += xOffset;
+    _Objects.at(objectIndex).Params.y += yOffset;
+}
+
+std::size_t Page::getObjectsCount() const
+{
+    return _Objects.size();
+}
+
+const Object& Page::getObject(std::size_t objectIndex) const
+{
+    auto it = _Objects.at(objectIndex);
+    if (it != _Objects.end())
+        return it;
+    else {
+        //возвращаем -1 чтобы понять что валидного объекта с таким индексом нет
+        return -1;
+    }
+};
+
+
+
+Object::Object(const Rect RectParams) : Params(RectParams)
+{
+}
+
+
+
+
+
 int main() {
+    Page pageObj;
 
 
     return 0;
