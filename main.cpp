@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <memory>
 
 struct Rect
 {
@@ -19,7 +20,7 @@ public:
     virtual ~Object() = default;
     Object(const Rect RectParams);
     Rect Params;
-    bool isGrouped;
+    bool GroupedState;
 };
 
 class Slide
@@ -43,8 +44,11 @@ public:
 
 };
 
+
 class Page : public Slide
 {
+typedef uint64_t index;
+
 public:
     virtual void addRect(const Rect& geometry) override;
     virtual void group(const std::vector<std::size_t>& indexesToGroup) override; //группировка элементов с индексами indexesToGroup
@@ -53,20 +57,23 @@ public:
     virtual void moveObject(std::size_t objectIndex, int xOffset, int yOffset) override; //Перемещение объекта по слайду
     virtual std::size_t getObjectsCount() const override;  //Возвращает количество объектов  
     virtual const Object& getObject(std::size_t objectIndex) const override;
-    std::vector<Object> _Objects;  //Объекты на слайде  СДЕЛАТЬ ТИП MAP В КЛЮЧЕ ПОСТАВИТЬ ИНДЕКС 
+
+    std::map<index, Object> _Objects;  //Объекты на странице
+
+    static index cur_index;
 };
 
 
 
 void Page::addRect(const Rect& geometry)
 {
-    _Objects.insert(new Object(geometry));
+    _Objects.emplace({++cur_index, *(std::make_unique<Object>(Object(geometry) });
 }
 
 void Page::group(const std::vector<std::size_t>& indexesToGroup)
 {
-    for (auto& elemNum : indexesToGroup) {
-        _Objects.at(elemNum).isGrouped = true;
+    for (auto& elemIndex : indexesToGroup) {
+        _Objects.at(elemIndex).GroupedState = true;
     }
 
 }
@@ -74,7 +81,7 @@ void Page::group(const std::vector<std::size_t>& indexesToGroup)
 void Page::ungroup(std::size_t groupIndex)
 {
     for (auto& elemNum : indexesToGroup) {
-        _Objects.at(elemNum).isGrouped = false;
+        _Objects.at(elemNum).GroupedState = false;
     }
 }
 
@@ -116,8 +123,8 @@ Object::Object(const Rect RectParams) : Params(RectParams)
 
 
 int main() {
-    Page pageObj;
-
+    std::unique_ptr<Page>pPage(std::make_unique(new Page())) ;
+    
 
     return 0;
 };
