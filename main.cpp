@@ -72,28 +72,52 @@ void Page::addRect(const Rect& geometry)
 
 void Page::group(const std::vector<std::size_t>& indexesToGroup)
 {
-    for (auto& elemIndex : indexesToGroup) {
-        _Objects.at(elemIndex).GroupedState = true;
+    try {
+        for (auto& elemIndex : indexesToGroup) {
+            try {
+                _Objects.at(elemIndex).GroupedState = true;
+            }
+            catch (std::exception& ex) {
+                std::cout << "Got some issue with grouping at " << elemIndex << "index";
+            }
+    }
+    catch (std::exception& ex) {
+        std::cout << "Got some issue with grouping, err subscr: " << ex.what()
     }
 
 }
 
 void Page::ungroup(std::size_t groupIndex)
 {
-    for (auto& elemNum : indexesToGroup) {
+    try {
         _Objects.at(elemNum).GroupedState = false;
     }
-}
+    catch (std::exception& ex) {
+        std::cout << "Got some issue with ungrouping elem with index" << groupIndex << ", err subscr : " << ex.what()
+
+    }
 
 void Page::removeObject(std::size_t objectIndex)
 {
-    _Objects.erase(objectIndex);
+    try {
+        _Objects.erase(objectIndex);
+    }
+    catch (std::exception& ex) {
+        std::cout << "Got some issue with removing object at " << objectIndex << " index, err subscr: " << ex.what()
+    }
 }
 
 void Page::moveObject(std::size_t objectIndex, int xOffset, int yOffset)
 {
-    _Objects.at(objectIndex).Params.x += xOffset;
-    _Objects.at(objectIndex).Params.y += yOffset;
+    try {
+        _Objects.at(objectIndex).Params.x += xOffset;
+        _Objects.at(objectIndex).Params.y += yOffset;
+    }
+    catch (std::exception& ex) {
+        std::cout << "Got some issue with moving object at " << objectIndex << " index, offset (" << xOffset << ";" << yOffset << ")" << "err subscr :" << ex.what()
+
+    }
+
 }
 
 std::size_t Page::getObjectsCount() const
@@ -107,6 +131,7 @@ const Object& Page::getObject(std::size_t objectIndex) const
     if (it != _Objects.end())
         return it;
     else {
+        std::cout << "Got some issue with getting Object, at " << objectIndex << " index, err subscr :" << ex.what()
         //возвращаем -1 чтобы понять что валидного объекта с таким индексом нет
         return -1;
     }
